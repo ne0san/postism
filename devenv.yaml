@@ -1,1 +1,4 @@
-# See https://devenv.sh/reference/yaml-options/
+nixpkgs:
+  permitted_unfree_packages:
+    - dynamodb-local
+allowUnfree: true
