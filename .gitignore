@@ -153,3 +153,20 @@ devenv.local.yaml
 # pre-commit
 .pre-commit-config.yaml
 /result
+
+# ローカル開発のデータ(scripts/local と devenv のプロセスが作る)
+/.tiup/
+/.cognito/
+/.local/
+
+# AWS SAM
+.aws-sam/
+
+# Expo
+.expo/
+web-build/
+expo-env.d.ts
+apps/*/ios/
+apps/*/android/
+sandbox/*/*/ios/
+sandbox/*/*/android/
