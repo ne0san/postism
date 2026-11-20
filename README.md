@@ -107,13 +107,12 @@ bun run web           # http://localhost:8081
 
 iOS(シミュレーター):
 
-- `devenv shell` の中では、`DEVELOPER_DIR` と `SDKROOT` が nix の Apple SDK を指すため、Xcode とシミュレーターが見えない。iOS を動かすときは、2つを外して実行する。
+```sh
+cd apps/client
+bun run ios
+```
 
-  ```sh
-  cd apps/client
-  env -u DEVELOPER_DIR -u SDKROOT bun run ios
-  ```
-
+- devenv は nix の Apple SDK を入れず(`devenv.nix` の `apple.sdk = null`)、システムの Xcode を使う。`devenv shell` の中でも、`xcrun` は `/usr/bin/xcrun` になる。
 - 初回は、Expo CLI がシミュレーターに Expo Go を入れる。
 
 ### 疎通確認アプリ(sandbox/smoke、使い捨て)

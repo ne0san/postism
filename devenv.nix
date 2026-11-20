@@ -15,6 +15,11 @@ in {
     (callPackage ./cognito-local.nix {})
   ];
 
+  # nix の Apple SDK を入れず、システムの Xcode を使う。
+  # 既定の SDK は DEVELOPER_DIR と SDKROOT を書き換え、Xcode を知らない簡易版の xcrun(xcbuild)を
+  # PATH の先に置くため、Expo(xcrun simctl)が iOS シミュレーターを操作できない。
+  apple.sdk = null;
+
   # https://devenv.sh/languages/
   languages = {
     javascript = {
