@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: 疎通確認用(使い捨て)。環境変数は .local/smoke-env.json で上書きする。
+
+Resources:
+  SmokeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: dist
+      Handler: index.handler
+      Runtime: nodejs24.x
+      Architectures: [arm64]
+      Timeout: 15
+      Environment:
+        Variables:
+          TABLE_NAME: ""
+          DYNAMODB_ENDPOINT: ""
+          TIDB_HOST: ""
+          TIDB_PORT: ""
+          TIDB_DATABASE: ""
+          COGNITO_ISSUER: ""
+          COGNITO_JWKS_URI: ""
+          COGNITO_CLIENT_ID: ""
+      Events:
+        Smoke:
+          Type: HttpApi
+          Properties:
+            Path: /smoke
+            Method: POST
+        SmokePreflight:
+          Type: HttpApi
+          Properties:
+            Path: /smoke
+            Method: OPTIONS

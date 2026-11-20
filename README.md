@@ -16,6 +16,7 @@
 apps/client/      Expo(TypeScript)。1つのコードで Web と iOS(将来 Android も)
 apps/api/         AWS SAM(template.yaml)と Lambda(Node.js 24)
 scripts/local/    ローカル環境の起動、停止、初期化のスクリプト
+sandbox/smoke/    使い捨ての疎通確認アプリ(確認が済んだら削除する)
 ```
 
 ### 起動と停止(ショートカット)
@@ -53,7 +54,9 @@ local-down
 | DynamoDB Local | 8000 | |
 | cognito-local | 9229 | |
 | `sam local start-api`(apps/api) | 3000 | |
+| `sam local start-api`(sandbox/smoke) | 3001 | |
 | Expo Web(apps/client) | 8081 | |
+| Expo Web(sandbox/smoke) | 8082 | |
 
 ### データの置き場(すべて gitignore 済み)
 
@@ -115,11 +118,21 @@ bun run ios
 - Expo CLI は、起動中のシミュレーターを使う。どれも起動していなければ、一覧の先頭を起動する。iPhone Duo(画面が複数ある機種)では、`simctl io screenshot` が真っ黒になったので、確認には iPhone 18 Pro などの普通の機種を使うとよい(先に `xcrun simctl boot <UDID>` で起動しておく)。
 - 確認済み(2026-11-20、Xcode 27.2、iOS 27.2 のシミュレーター、Expo Go):`postism (ios)` が表示される。
 
-### 疎通確認の結果(2026-11-20)
+### 疎通確認アプリ(sandbox/smoke、使い捨て)
 
-使い捨ての疎通確認アプリで、Web(ブラウザー)と iOS(シミュレーター、Expo Go)の両方から、cognito-local でサインイン → Lambda(sam local start-api)→ DynamoDB Local と TiDB への読み書き、が通ることを確かめた。アプリは確認後に削除した。つなぎ目で出た問題と対処(コンテナからホストへの接続、`iss` と JWKS の URL のずれ、http の JWKS、CORS など)は PR #8 に記録してある。
+Expo(Web)→ cognito-local でサインイン → Lambda(sam local start-api)→ DynamoDB Local と TiDB に読み書き、を通しで確かめる。
 
-- iOS のシミュレーターはホストとネットワークを共有するので、`127.0.0.1` の cognito-local と API にそのまま届く。Expo Go では、http の通信の制限で止まることはなかった。
+```sh
+local-up
+# ターミナル 1
+cd sandbox/smoke/api && bun run start-api      # 3001
+# ターミナル 2
+cd sandbox/smoke/client && bun run web         # http://localhost:8082
+```
+
+画面で `test@example.com` / `LocalPassw0rd!` を入れてボタンを押すと、API の結果(DynamoDB と TiDB の読み書きの結果)が出る。
+
+iOS(シミュレーター)で動かすときは、ターミナル2で `bun run ios` を使う。`bun run ios:auto` は、起動時にサインインから API の呼び出しまでを自動で実行する(シミュレーターでは画面の操作を自動化しにくいため)。シミュレーターはホストとネットワークを共有するので、`127.0.0.1` の cognito-local と API にそのまま届く(2026-11-20 に確認。Expo Go では http の制限で止まることはなかった)。
 
 ### 本物の LLM を使う(オーナーのみ)
 

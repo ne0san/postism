@@ -168,3 +168,5 @@ web-build/
 expo-env.d.ts
 apps/*/ios/
 apps/*/android/
+sandbox/*/*/ios/
+sandbox/*/*/android/

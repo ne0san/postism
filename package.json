@@ -2,7 +2,8 @@
   "name": "postism",
   "private": true,
   "workspaces": [
-    "apps/*"
+    "apps/*",
+    "sandbox/smoke/*"
   ],
   "scripts": {
     "local:init": "bun scripts/local/init.ts",
