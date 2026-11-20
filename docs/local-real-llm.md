@@ -71,4 +71,5 @@ op run --env-file=.local/llm-keys.env -- bun run start-api
 
 - Claude Code のセッションでは、本物の LLM を使わない。キーや、参照を解決した結果を、会話に貼らない。
 - Claude Code が `op` を実行しようとすると、1Password からオーナーに認証が求められる。身に覚えがなければ拒否する。
-- Claude Code の側で `op` の実行や秘密の置き場の読み取りを拒否する設定は、設計案(認証情報の隔離)が承認された後に入れる予定。
+- 1Password の CLI は、一度許可すると、同じターミナルでしばらく許可が続く(期間などの細部は未確認)。`op` を許可したばかりのターミナルでは、Claude Code を動かさない。
+- Claude Code の側の制御(拒否の規則や sandbox)は入れない。1Password の認証で十分と判断した(2026-11-20)。
