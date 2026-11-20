@@ -133,6 +133,10 @@ cd sandbox/smoke/client && bun run web         # http://localhost:8082
 
 iOS(シミュレーター)で動かすときは、ターミナル2で `bun run ios` を使う。`bun run ios:auto` は、起動時にサインインから API の呼び出しまでを自動で実行する(シミュレーターでは画面の操作を自動化しにくいため)。シミュレーターはホストとネットワークを共有するので、`127.0.0.1` の cognito-local と API にそのまま届く(2026-11-20 に確認。Expo Go では http の制限で止まることはなかった)。
 
+### 本物の LLM を使う(オーナーのみ)
+
+LLM を使う機能はまだ無い。実装後は、ローカルの既定で偽物の実装を使い、キーは要らない方針。オーナーが手元で本物の LLM(Claude、Jev)を確かめるときの手順は [docs/local-real-llm.md](docs/local-real-llm.md) にある。キーは 1Password に置き、`op run` で起動するコマンドにだけ渡す。キーを Claude Code の会話やリポジトリに出さない。
+
 ### cognito-local で再現できないこと
 
 ローカルで確かめられるのは、ID とパスワードのサインイン(`USER_PASSWORD_AUTH`)、リフレッシュ、トークン(RS256、JWKS)まで。
