@@ -114,6 +114,8 @@ bun run ios
 
 - devenv は nix の Apple SDK を入れず(`devenv.nix` の `apple.sdk = null`)、システムの Xcode を使う。`devenv shell` の中でも、`xcrun` は `/usr/bin/xcrun` になる。
 - 初回は、Expo CLI がシミュレーターに Expo Go を入れる。
+- Expo CLI は、起動中のシミュレーターを使う。どれも起動していなければ、一覧の先頭を起動する。iPhone Duo(画面が複数ある機種)では、`simctl io screenshot` が真っ黒になったので、確認には iPhone 18 Pro などの普通の機種を使うとよい(先に `xcrun simctl boot <UDID>` で起動しておく)。
+- 確認済み(2026-11-20、Xcode 27.2、iOS 27.2 のシミュレーター、Expo Go):`postism (ios)` が表示される。
 
 ### 疎通確認アプリ(sandbox/smoke、使い捨て)
 
@@ -128,6 +130,8 @@ cd sandbox/smoke/client && bun run web         # http://localhost:8082
 ```
 
 画面で `test@example.com` / `LocalPassw0rd!` を入れてボタンを押すと、API の結果(DynamoDB と TiDB の読み書きの結果)が出る。
+
+iOS(シミュレーター)で動かすときは、ターミナル2で `bun run ios` を使う。`bun run ios:auto` は、起動時にサインインから API の呼び出しまでを自動で実行する(シミュレーターでは画面の操作を自動化しにくいため)。シミュレーターはホストとネットワークを共有するので、`127.0.0.1` の cognito-local と API にそのまま届く(2026-11-20 に確認。Expo Go では http の制限で止まることはなかった)。
 
 ### cognito-local で再現できないこと
 

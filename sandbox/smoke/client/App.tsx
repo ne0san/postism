@@ -1,10 +1,14 @@
 // 疎通確認用の画面(使い捨て)。サインイン → API 呼び出し → 結果の表示だけ。
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button, StyleSheet, Text, TextInput, View } from "react-native";
 
 const COGNITO = process.env.EXPO_PUBLIC_COGNITO_ENDPOINT ?? "http://127.0.0.1:9229";
 const CLIENT_ID = process.env.EXPO_PUBLIC_USER_POOL_CLIENT_ID ?? "";
 const API = "http://127.0.0.1:3001";
+// iOS シミュレーターでは画面の操作を自動化しにくいので、確認用に起動時に自動で実行できるようにする。
+// EXPO_PUBLIC_SMOKE_AUTORUN=1 のときだけ。パスワードはローカルの固定値(秘密ではない。scripts/local/config.ts)。
+const AUTORUN = process.env.EXPO_PUBLIC_SMOKE_AUTORUN === "1";
+const LOCAL_TEST_PASSWORD = "LocalPassw0rd!";
 
 async function signIn(username: string, password: string): Promise<string> {
   const res = await fetch(COGNITO, {
@@ -26,7 +30,7 @@ async function signIn(username: string, password: string): Promise<string> {
 
 export default function App() {
   const [username, setUsername] = useState("test@example.com");
-  const [password, setPassword] = useState("");
+  const [password, setPassword] = useState(AUTORUN ? LOCAL_TEST_PASSWORD : "");
   const [result, setResult] = useState("");
 
   const run = async () => {
@@ -42,6 +46,11 @@ export default function App() {
       setResult(`error: ${(e as Error).message}`);
     }
   };
+
+  useEffect(() => {
+    if (AUTORUN) run();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <View style={styles.container}>

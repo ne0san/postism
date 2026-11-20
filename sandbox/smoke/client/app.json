@@ -2,6 +2,9 @@
   "expo": {
     "name": "postism-smoke",
     "slug": "postism-smoke",
-    "platforms": ["web"]
+    "platforms": [
+      "ios",
+      "web"
+    ]
   }
 }
