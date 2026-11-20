@@ -1,0 +1,19 @@
+{
+  "name": "postism",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "sandbox/smoke/*"
+  ],
+  "scripts": {
+    "local:init": "bun scripts/local/init.ts",
+    "local:check": "bun scripts/local/check.ts"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-cognito-identity-provider": "^3.1172.0",
+    "@aws-sdk/client-dynamodb": "^3.1172.0",
+    "@aws-sdk/lib-dynamodb": "^3.1172.0",
+    "@types/bun": "^1.4.4",
+    "typescript": "^7.0.2"
+  }
+}
