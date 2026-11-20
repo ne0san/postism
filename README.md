@@ -6,7 +6,7 @@
 
 | もの | 用途 | 備考 |
 | --- | --- | --- |
-| Nix と [devenv](https://devenv.sh/) | 開発ツール一式(bun、Node.js 24、tiup、cognito-local、DynamoDB Local、AWS SAM CLI) | `devenv shell` で入る。direnv を使うなら `.envrc` で自動で入る |
+| Nix と [devenv](https://devenv.sh/) | 開発ツール一式(bun、Node.js 24、tiup、cognito-local、DynamoDB Local、AWS SAM CLI、CocoaPods) | `devenv shell` で入る。direnv を使うなら `.envrc` で自動で入る |
 | Docker 互換のランタイム(OrbStack など) | `sam local invoke` と `sam local start-api` | Lambda をコンテナで動かすため。起動しておく |
 | Xcode と iOS シミュレーター | Expo の iOS 確認 | iOS を確認するときだけ |
 
@@ -111,6 +111,7 @@ bun run ios
 
 - devenv は nix の Apple SDK を入れず(`devenv.nix` の `apple.sdk = null`)、システムの Xcode を使う。`devenv shell` の中でも、`xcrun` は `/usr/bin/xcrun` になる。
 - 初回は、Expo CLI がシミュレーターに Expo Go を入れる。
+- `bun run ios` は Expo Go で動かす。Expo Go に無いネイティブのライブラリを使うときは、開発ビルド(`bunx expo run:ios`)にする。開発ビルドに要る CocoaPods は devenv に入っている。
 - Expo CLI は、起動中のシミュレーターを使う。どれも起動していなければ、一覧の先頭を起動する。iPhone Duo(画面が複数ある機種)では、`simctl io screenshot` が真っ黒になったので、確認には iPhone 18 Pro などの普通の機種を使うとよい(先に `xcrun simctl boot <UDID>` で起動しておく)。
 - 確認済み(2026-11-20、Xcode 27.2、iOS 27.2 のシミュレーター、Expo Go):`postism (ios)` が表示される。
 

@@ -11,6 +11,7 @@ in {
     aws-sam-cli
     bun
     curl
+    cocoapods # iOS の開発ビルド(bunx expo run:ios)用
     (callPackage ./tiup.nix {})
     (callPackage ./cognito-local.nix {})
   ];
