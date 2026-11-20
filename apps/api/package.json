@@ -6,7 +6,7 @@
     "build": "rm -rf dist && bun build src/hello/index.ts --target node --format esm --outdir dist/hello --entry-naming index.mjs",
     "test": "bun run test:bun && bun run test:vitest",
     "test:bun": "bun test",
-    "test:vitest": "bun --bun vitest run",
+    "test:vitest": "vitest run",
     "invoke": "bun run build && sam local invoke HelloFunction --event events/hello.json",
     "start-api": "bun run build && sam local start-api --port 3000"
   },

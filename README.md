@@ -6,7 +6,7 @@
 
 | もの | 用途 | 備考 |
 | --- | --- | --- |
-| Nix と [devenv](https://devenv.sh/) | 開発ツール一式(bun、tiup、cognito-local、DynamoDB Local、AWS SAM CLI) | `devenv shell` で入る。direnv を使うなら `.envrc` で自動で入る |
+| Nix と [devenv](https://devenv.sh/) | 開発ツール一式(bun、Node.js 24、tiup、cognito-local、DynamoDB Local、AWS SAM CLI) | `devenv shell` で入る。direnv を使うなら `.envrc` で自動で入る |
 | Docker 互換のランタイム(OrbStack など) | `sam local invoke` と `sam local start-api` | Lambda をコンテナで動かすため。起動しておく |
 | Xcode と iOS シミュレーター | Expo の iOS 確認 | iOS を確認するときだけ |
 
@@ -84,7 +84,7 @@ bun run test:vitest   # vitest(*.vitest.ts)
 ```
 
 - bun test は `*.test.ts` を、vitest は `*.vitest.ts` を対象にする(互いのファイルを拾わないように、名前で分ける)。
-- vitest は今は Bun で動く(`bun --bun`、threads プール)。Node では動かしていない。
+- vitest は devenv の Node 24(Lambda の `nodejs24.x` と同じメジャー版)で動く。bun test は Bun で動く。Node での挙動は vitest と `sam local invoke` で確かめる。
 
 ### AWS SAM(apps/api)
 
@@ -96,7 +96,7 @@ curl 'http://127.0.0.1:3000/hello?name=you'
 ```
 
 - `devenv shell` の中で実行する。外で実行すると、ホストの AWS の設定(プロファイルなど)を読みに行って失敗することがある。
-- ビルドは `sam build` ではなく `bun build`(`dist/hello/index.mjs`)。devenv では Node と npm を無効にしているため。
+- ビルドは `sam build` ではなく `bun build`(`dist/hello/index.mjs`)。devenv には npm を入れていない(パッケージの管理は bun)ため。
 
 ### Expo(apps/client)
 

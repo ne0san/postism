@@ -23,7 +23,10 @@ in {
   # https://devenv.sh/languages/
   languages = {
     javascript = {
-      nodejs.enable = false;
+      enable = true;
+      # Lambda の実ランタイム(nodejs24.x)と同じ Node 24。vitest はこれで動かす。npm は入れない(bun を使う)。
+      package = pkgs.nodejs-slim_24;
+      nodejs.enable = true;
       bun.enable = true;
     };
     typescript.enable = true;
