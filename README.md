@@ -86,7 +86,18 @@ local-down
 どれもローカルのエミュレーター用で、秘密ではない。`devenv.nix` と `scripts/local/config.ts` にある。
 
 - AWS の認証情報: `AWS_ACCESS_KEY_ID=local`、`AWS_SECRET_ACCESS_KEY=local`、リージョン `ap-northeast-1`
-- テストユーザー: `test@example.com` / `LocalPassw0rd!`(cognito-local の中だけ)
+- テストユーザー(cognito-local の中だけ。パスワードはどちらも `LocalPassw0rd!`):
+  - `test@example.com`: MFA なし(疎通確認アプリと、MFA を使わない確認用)。
+  - `mfa@example.com`: TOTP 登録済み。TOTP のシークレットは `.local/state.json` の `mfaUser.totpSecret`(ローカル用で、秘密ではない)。認証アプリに登録すれば、手で試せる。
+
+### ローカルのユーザープールの設定(ログイン)
+
+ログイン用のユーザープールは、dev と本番と同じ設定で作る(`scripts/local/config.ts` の `USER_POOL_SETTINGS`)。ID はメールアドレス、大文字と小文字を区別しない、パスワードは12文字以上(文字種の強制なし)、MFA は TOTP だけ、パスワードの再設定は確認済みのメール。
+
+- 違いは MFA だけ。dev と本番は必須(ON)、ローカルは任意(OPTIONAL)。cognito-local は、MFA 必須で未登録のユーザーに出す MFA_SETUP のチャレンジに対応しないため。ローカルでは、TOTP 未登録でもサインインでトークンが出るので、アプリの側で登録を強制する(アクセストークンで登録する経路)。
+- 設定を変えたあと(古いプールが残っているとき)は、`local-init` が止まって知らせる。`local-down` → `local-reset` → `local-up` で作り直す(ローカルのデータが消える)。
+- cognito-local は、パスワードの規則と、大文字と小文字を区別しない設定を、保存はするが効かせない(短いパスワードも通り、大文字のメールではサインインできない)。アプリの側で、パスワードの長さを確かめ、メールを小文字にそろえてから送る。
+- `bun run local:check` は、TOTP でのサインイン(`mfa@example.com`)と、サインアップ → 確認コード → TOTP の登録 → TOTP でのサインインを確かめる。
 
 ### テスト(apps/api)
 
@@ -161,5 +172,6 @@ LLM を使う機能はまだ無い。実装後は、ローカルの既定で偽�
 - `USER_SRP_AUTH`(Amplify の既定)と `CUSTOM_AUTH`: 未対応。ローカルでは `USER_PASSWORD_AUTH` を使う。
 - トークンの `iss` は `http://127.0.0.1:9229/<poolId>`(本物は `https://cognito-idp.<region>.amazonaws.com/<poolId>`)。JWKS も http。本物用の検証(aws-jwt-verify の `CognitoJwtVerifier` など)はそのままでは使えない。
 - デバイスの記憶、`GlobalSignOut`、高度なセキュリティ(リスク判定)、ユーザーのインポート、リソースサーバー(カスタムスコープ)、UI のカスタマイズ: 未実装。
-- MFA は一部のみ。メールや SMS は実際には送らない(コードはログに出る)。
+- MFA は一部のみ。TOTP の登録(アクセストークンの経路)と、サインインの TOTP のチャレンジは使える。MFA 必須のときの MFA_SETUP(Session で登録する経路)、確認コードの再送(`ResendConfirmationCode`)、`AdminDeleteSoftwareToken`(認証アプリの紛失時)は無い。これらは dev で確かめる。
+- メールや SMS は実際には送らない(コードはログと、`.cognito/db/<poolId>.json` に出る)。
 - Lambda トリガーは、設定すれば呼べる(実際の Lambda か、ローカルの Lambda エンドポイント)。今は未設定。
