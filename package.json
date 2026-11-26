@@ -7,7 +7,9 @@
   ],
   "scripts": {
     "local:init": "bun scripts/local/init.ts",
-    "local:check": "bun scripts/local/check.ts"
+    "local:check": "bun scripts/local/check.ts",
+    "typecheck": "tsc -p scripts/local && bun run --cwd apps/api typecheck && bun run --cwd apps/client typecheck && bun run --cwd sandbox/smoke/api typecheck && bun run --cwd sandbox/smoke/client typecheck",
+    "test": "bun run --cwd apps/api test"
   },
   "devDependencies": {
     "@aws-sdk/client-cognito-identity-provider": "^3.1172.0",

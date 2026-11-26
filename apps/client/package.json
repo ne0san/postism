@@ -18,7 +18,8 @@
   "scripts": {
     "start": "bun ../../scripts/local/profile.ts exec-expo -- expo start",
     "ios": "bun ../../scripts/local/profile.ts exec-expo -- expo start --ios",
-    "web": "bun ../../scripts/local/profile.ts exec-expo -- expo start --web"
+    "web": "bun ../../scripts/local/profile.ts exec-expo -- expo start --web",
+    "typecheck": "tsc --noEmit"
   },
   "private": true
 }

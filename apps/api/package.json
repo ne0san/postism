@@ -8,7 +8,8 @@
     "test:bun": "bun test",
     "test:vitest": "vitest run",
     "invoke": "bun run build && bun ../../scripts/local/profile.ts sam-env > ../../.local/sam-env.json && sam local invoke HelloFunction --event events/hello.json --env-vars ../../.local/sam-env.json",
-    "start-api": "bun run build && bun ../../scripts/local/profile.ts sam-env > ../../.local/sam-env.json && sam local start-api --port 3000 --env-vars ../../.local/sam-env.json"
+    "start-api": "bun run build && bun ../../scripts/local/profile.ts sam-env > ../../.local/sam-env.json && sam local start-api --port 3000 --env-vars ../../.local/sam-env.json",
+    "typecheck": "tsc -p ."
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.164",

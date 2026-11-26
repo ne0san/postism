@@ -1,0 +1,60 @@
+# CI: 型チェックとテスト。手元と同じ devenv(nix)の環境で動かす。
+# 手元では `bun run typecheck` と `bun run test` で同じことをする。
+#
+# cachix(任意): Actions の変数 CACHIX_CACHE_NAME と secret CACHIX_AUTH_TOKEN があれば、
+# nix のビルドの成果物(tiup、cognito-local など)をキャッシュする。無くても動く(遅くなる)。
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: cachix/install-nix-action@v31
+
+      # devenv 自身のバイナリのキャッシュ(公開)。
+      - uses: cachix/cachix-action@v16
+        with:
+          name: devenv
+
+      # このリポジトリのキャッシュ(変数と secret があるときだけ)。
+      - uses: cachix/cachix-action@v16
+        if: ${{ vars.CACHIX_CACHE_NAME != '' }}
+        with:
+          name: ${{ vars.CACHIX_CACHE_NAME }}
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+
+      - name: Install devenv
+        run: nix profile install nixpkgs#devenv
+
+      # 先に devenv の環境を一度作っておく。手元では、パッケージを変えた直後の最初の
+      # `devenv shell -- <cmd>` で、<cmd> の PATH に devenv のパッケージが入らないことがあった。
+      - name: Build devenv shell
+        run: devenv shell -- true
+
+      - name: Show versions
+        run: devenv shell -- bash -c 'devenv version; bun --version; node --version'
+
+      - name: Install dependencies
+        run: devenv shell -- bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: devenv shell -- bun run typecheck
+
+      - name: Test (bun test + vitest)
+        run: devenv shell -- bun run test

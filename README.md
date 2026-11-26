@@ -99,6 +99,19 @@ local-down
 - cognito-local は、パスワードの規則と、大文字と小文字を区別しない設定を、保存はするが効かせない(短いパスワードも通り、大文字のメールではサインインできない)。アプリの側で、パスワードの長さを確かめ、メールを小文字にそろえてから送る。
 - `bun run local:check` は、TOTP でのサインイン(`mfa@example.com`)と、サインアップ → 確認コード → TOTP の登録 → TOTP でのサインインを確かめる。
 
+### CI(GitHub Actions)
+
+`.github/workflows/ci.yml`。PR と main への push で、devenv(nix)の環境で次を走らせる。手元では同じコマンドで確かめられる。
+
+```sh
+bun install --frozen-lockfile
+bun run typecheck   # scripts/local、apps/api、apps/client、sandbox/smoke の型チェック
+bun run test        # apps/api の bun test と vitest
+```
+
+- ローカルのサービス(TiDB、DynamoDB Local、cognito-local)を起動する確認は、CI では走らせない(重いため)。
+- cachix(任意):Actions の変数 `CACHIX_CACHE_NAME` と secret `CACHIX_AUTH_TOKEN` があれば、nix のビルドの成果物をキャッシュする。無くても動く(初回や更新時に tiup と cognito-local のビルドで遅くなる)。
+
 ### テスト(apps/api)
 
 ```sh
