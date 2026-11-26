@@ -16,9 +16,9 @@
     "typescript": "~6.0.3"
   },
   "scripts": {
-    "start": "expo start",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
+    "start": "bun ../../scripts/local/profile.ts exec-expo -- expo start",
+    "ios": "bun ../../scripts/local/profile.ts exec-expo -- expo start --ios",
+    "web": "bun ../../scripts/local/profile.ts exec-expo -- expo start --web"
   },
   "private": true
 }

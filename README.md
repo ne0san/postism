@@ -43,6 +43,20 @@ local-down
 
 `local-init` は、作ったプール ID などを `.local/state.json` と `.local/env` に書く(どちらも gitignore 済み)。
 
+### 接続先の切り替え(APP_ENV とプロファイル)
+
+アプリ(Expo と sam local)が使う Cognito や API の接続先は、プロファイルで切り替える。`APP_ENV` で選び、既定は `local`。
+
+| APP_ENV | プロファイル | 作る人 | サインインの方式 |
+| --- | --- | --- | --- |
+| `local`(既定) | `.local/profiles/local.json` | `local-init` が書く | `USER_PASSWORD_AUTH`(cognito-local は SRP に対応しない) |
+| `dev` | `.local/profiles/dev.json` | オーナーが置く(ひな形は `scripts/local/profile.example.dev.json`) | `USER_SRP_AUTH` |
+
+- `.local/` は gitignore 済み。プロファイルには秘密を入れない(ID と URL だけ)。
+- Expo(`apps/client` の `bun run web` など)は、プロファイルの値を `EXPO_PUBLIC_*` として受け取る。`EXPO_PUBLIC_*` はアプリのバンドルに入るので、秘密を入れない。
+- sam local(`apps/api` の `bun run invoke`、`bun run start-api`)は、プロファイルから `.local/sam-env.json` を作り、`--env-vars` で渡す。local では、コンテナから届くように `127.0.0.1` を `host.docker.internal` に置き換える(トークンの `iss` は置き換えない)。
+- 中身の確認:`bun scripts/local/profile.ts show`(`APP_ENV=dev bun scripts/local/profile.ts show` で dev)。
+
 ### ポート
 
 | コンポーネント | ポート | 備考 |

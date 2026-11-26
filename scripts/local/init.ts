@@ -25,6 +25,7 @@ import { SQL } from "bun";
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { LOCAL } from "./config";
+import { type Profile, validateProfile } from "./profile";
 
 const root = process.env.DEVENV_ROOT ?? join(import.meta.dir, "..", "..");
 
@@ -164,4 +165,26 @@ await Bun.write(
     "",
   ].join("\n"),
 );
-console.log(`wrote ${join(".local", "state.json")} and ${join(".local", "env")}`);
+// 接続先のプロファイル(local)。アプリへの受け渡しは scripts/local/profile.ts で行う。
+const issuer = `${LOCAL.cognitoEndpoint}/${cognito.userPoolId}`;
+const localProfile: Profile = validateProfile(
+  {
+    env: "local",
+    region: process.env.AWS_REGION ?? "ap-northeast-1",
+    cognito: {
+      endpoint: LOCAL.cognitoEndpoint,
+      userPoolId: cognito.userPoolId,
+      iosClientId: cognito.userPoolClientId,
+      // BFF 用のクライアントは、BFF を作るときに分ける。それまでは同じクライアントを使う。
+      webClientId: cognito.userPoolClientId,
+      authFlow: "USER_PASSWORD_AUTH",
+      issuer,
+      jwksUri: `${issuer}/.well-known/jwks.json`,
+    },
+    api: { baseUrl: "http://127.0.0.1:3000" },
+  },
+  "local",
+);
+await mkdir(join(dir, "profiles"), { recursive: true });
+await Bun.write(join(dir, "profiles", "local.json"), JSON.stringify(localProfile, null, 2) + "\n");
+console.log(`wrote ${join(".local", "state.json")}, ${join(".local", "env")} and ${join(".local", "profiles", "local.json")}`);
