@@ -1,5 +1,6 @@
 {
   pkgs,
+  lib,
   config,
   ...
 }: let
@@ -7,14 +8,16 @@
   tidbVersion = "v8.5.8";
 in {
   # https://devenv.sh/packages/
-  packages = with pkgs; [
-    aws-sam-cli
-    bun
-    curl
-    cocoapods # iOS の開発ビルド(bunx expo run:ios)用
-    (callPackage ./tiup.nix {})
-    (callPackage ./cognito-local.nix {})
-  ];
+  packages = with pkgs;
+    [
+      aws-sam-cli
+      bun
+      curl
+      (callPackage ./tiup.nix {})
+      (callPackage ./cognito-local.nix {})
+    ]
+    # iOS の開発ビルド(bunx expo run:ios)用。Linux(CI)では入れない。
+    ++ lib.optionals stdenv.isDarwin [cocoapods];
 
   # nix の Apple SDK を入れず、システムの Xcode を使う。
   # 既定の SDK は DEVELOPER_DIR と SDKROOT を書き換え、Xcode を知らない簡易版の xcrun(xcbuild)を

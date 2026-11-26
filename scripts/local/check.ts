@@ -1,13 +1,21 @@
 // ローカルの各コンポーネントの疎通確認。local-up の後に実行する。
 //   bun run local:check
 import {
+  AdminDeleteUserCommand,
+  AssociateSoftwareTokenCommand,
   CognitoIdentityProviderClient,
+  ConfirmSignUpCommand,
   InitiateAuthCommand,
+  RespondToAuthChallengeCommand,
+  SetUserMFAPreferenceCommand,
+  SignUpCommand,
+  VerifySoftwareTokenCommand,
 } from "@aws-sdk/client-cognito-identity-provider";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { SQL } from "bun";
 import { join } from "node:path";
+import { findStoredUser, totpCode } from "./cognito-local";
 import { LOCAL } from "./config";
 
 const root = process.env.DEVENV_ROOT ?? join(import.meta.dir, "..", "..");
@@ -66,6 +74,78 @@ await step("cognito-local", async () => {
     tokenUse: payload.token_use,
     jwksKeys: jwks.keys.length,
   };
+});
+
+const cognito = new CognitoIdentityProviderClient({ endpoint: LOCAL.cognitoEndpoint });
+
+/** パスワードでサインインし、TOTP のチャレンジが出たらコードを入れて、トークンまで取る。 */
+async function signInWithTotp(username: string, password: string, secret: string) {
+  const first = await cognito.send(
+    new InitiateAuthCommand({
+      AuthFlow: "USER_PASSWORD_AUTH",
+      ClientId: state.userPoolClientId,
+      AuthParameters: { USERNAME: username, PASSWORD: password },
+    }),
+  );
+  if (first.ChallengeName !== "SOFTWARE_TOKEN_MFA") {
+    throw new Error(`TOTP のチャレンジが出ない(${first.ChallengeName ?? "トークンが出た"})`);
+  }
+  const second = await cognito.send(
+    new RespondToAuthChallengeCommand({
+      ClientId: state.userPoolClientId,
+      ChallengeName: "SOFTWARE_TOKEN_MFA",
+      Session: first.Session,
+      ChallengeResponses: { USERNAME: username, SOFTWARE_TOKEN_MFA_CODE: totpCode(secret) },
+    }),
+  );
+  if (!second.AuthenticationResult?.AccessToken) throw new Error("TOTP の後にトークンが出ない");
+  return { challenge: first.ChallengeName, tokens: Object.keys(second.AuthenticationResult) };
+}
+
+await step("cognito-local: TOTP でサインイン(mfa@example.com)", () =>
+  signInWithTotp(state.mfaUser.username, state.mfaUser.password, state.mfaUser.totpSecret),
+);
+
+await step("cognito-local: サインアップ → 確認 → TOTP 登録 → TOTP でサインイン", async () => {
+  const email = `check-${Date.now()}@example.com`;
+  const password = LOCAL.testUser.password;
+  try {
+    await cognito.send(
+      new SignUpCommand({
+        ClientId: state.userPoolClientId,
+        Username: email,
+        Password: password,
+        UserAttributes: [{ Name: "email", Value: email }],
+      }),
+    );
+    // cognito-local はメールを送らない。確認コードは、データのファイルから読む。
+    const code = (await findStoredUser(state.userPoolId, email))?.ConfirmationCode;
+    if (!code) throw new Error("確認コードが見つからない");
+    await cognito.send(new ConfirmSignUpCommand({ ClientId: state.userPoolClientId, Username: email, ConfirmationCode: code }));
+    // ローカルは MFA が OPTIONAL なので、未登録ならトークンが出る(アプリは、ここで登録を強制する)。
+    const first = await cognito.send(
+      new InitiateAuthCommand({
+        AuthFlow: "USER_PASSWORD_AUTH",
+        ClientId: state.userPoolClientId,
+        AuthParameters: { USERNAME: email, PASSWORD: password },
+      }),
+    );
+    const accessToken = first.AuthenticationResult?.AccessToken;
+    if (!accessToken) throw new Error(`初回のサインインでトークンが出ない(${first.ChallengeName})`);
+    const { SecretCode } = await cognito.send(new AssociateSoftwareTokenCommand({ AccessToken: accessToken }));
+    await cognito.send(new VerifySoftwareTokenCommand({ AccessToken: accessToken, UserCode: totpCode(SecretCode!) }));
+    await cognito.send(
+      new SetUserMFAPreferenceCommand({
+        AccessToken: accessToken,
+        SoftwareTokenMfaSettings: { Enabled: true, PreferredMfa: true },
+      }),
+    );
+    return await signInWithTotp(email, password, SecretCode!);
+  } finally {
+    await cognito
+      .send(new AdminDeleteUserCommand({ UserPoolId: state.userPoolId, Username: email }))
+      .catch(() => undefined);
+  }
 });
 
 process.exit(failed ? 1 : 0);

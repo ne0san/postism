@@ -5,7 +5,8 @@
   "scripts": {
     "web": "bash -c 'set -a && . ../../../.local/env && set +a && expo start --web --port 8082'",
     "ios": "bash -c 'set -a && . ../../../.local/env && set +a && expo start --ios --port 8082'",
-    "ios:auto": "bash -c 'set -a && . ../../../.local/env && set +a && EXPO_PUBLIC_SMOKE_AUTORUN=1 expo start --ios --port 8082'"
+    "ios:auto": "bash -c 'set -a && . ../../../.local/env && set +a && EXPO_PUBLIC_SMOKE_AUTORUN=1 expo start --ios --port 8082'",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@expo/metro-runtime": "~58.0.17",
