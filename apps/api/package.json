@@ -14,5 +14,10 @@
   "devDependencies": {
     "@types/aws-lambda": "^8.10.164",
     "vitest": "^5.1.1"
+  },
+  "dependencies": {
+    "@effect-aws/client-dynamodb": "^2.0.0",
+    "@effect-aws/dynamodb": "^2.0.0",
+    "effect": "^4.1.6"
   }
 }
